@@ -7,7 +7,7 @@
         public double CostPrice { get; set; }
         public bool isActive { get; set; }
         public bool IsDelete { get; set; }
-        public int? CategoryId { get; set; }
+        public int CategoryId { get; set; }
         public Category Category { get; set; }
     }
 }

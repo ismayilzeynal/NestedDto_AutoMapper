@@ -4,6 +4,7 @@ namespace WebApi.Dtos.ProductDtos
 {
     public class ProductCreateDto
     {
+        public int CategoryId { get; set; }
         public string Name { get; set; }
         public double SalePrice { get; set; }
         public double CostPrice { get; set; }
@@ -15,14 +16,16 @@ namespace WebApi.Dtos.ProductDtos
     {
         public ProductCreateDtoValidator()
         {
+            RuleFor(x => x.CategoryId).GreaterThanOrEqualTo(1).WithMessage("1 ve ya boyuk olmalidir")
+                .NotNull().WithMessage("Bos qoymaq bilmez");
             RuleFor(p => p.Name)
                 .MaximumLength(50).WithMessage("50-den uzun ola bilmez")
                 .NotNull().WithMessage("Bos qoymaq bilmez");
             RuleFor(p => p.SalePrice)
-                .GreaterThanOrEqualTo(0).WithMessage("0-dan boyw olmalidir")
+                .GreaterThanOrEqualTo(0).WithMessage("0-dan boyuk olmalidir")
                 .NotNull().WithMessage("Bos qoymaq bilmez");
             RuleFor(p => p.CostPrice)
-                .GreaterThanOrEqualTo(0).WithMessage("0-dan boyw olmalidir")
+                .GreaterThanOrEqualTo(0).WithMessage("0-dan boyuk olmalidir")
                 .NotNull().WithMessage("Bos qoymaq bilmez");
             RuleFor(p => p.IsActive)
                 .Equal(true).WithMessage("mutleq true olmalidir")

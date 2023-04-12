@@ -25,7 +25,7 @@ namespace WebApi.Controllers
 
 
         [HttpGet]
-        public IActionResult GetAll(string search, int page = 1)
+        public IActionResult GetAll(string? search, int page = 1)
         {
             var query = _appDbContext.Categories
                 .Where(c => !c.IsDelete);

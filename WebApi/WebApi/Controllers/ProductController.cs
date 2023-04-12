@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using WebApi.Data.DAL;
 using WebApi.Dtos.ProductDtos;
 using WebApi.Models;
@@ -21,8 +22,10 @@ namespace WebApi.Controllers
         public IActionResult GetAll(string search, int page = 1)
         {
             var query = _appDbContext.Products
+                .Include(p=>p.Category)
+                .ThenInclude(c=>c.Products)
                 .Where(p => !p.IsDelete);
-            if(!string.IsNullOrWhiteSpace(search))
+            if (!string.IsNullOrWhiteSpace(search))
             {
                 query = query.Where(q => q.Name.Contains(search));
             }
@@ -34,13 +37,20 @@ namespace WebApi.Controllers
             ProductListDto productListDto = new();
             productListDto.TotalCount = query.Count();
             productListDto.CurrentPage = page;
+
             productListDto.Items = products.Select(p => new ProductListItemDto
             {
                 Name = p.Name,
                 CostPrice = p.CostPrice,
                 SalePrice = p.SalePrice,
                 CreatedDate = p.CreatedDate,
-                UpdatedDate = p.UpdatedDate
+                UpdatedDate = p.UpdatedDate,
+                Category = new()
+                {
+                    Id = p.CategoryId,
+                    Name = p.Category.Name,
+                    ProductCount = p.Category.Products.Count
+                }
             }).ToList();
 
             return StatusCode(200, productListDto);
@@ -50,6 +60,7 @@ namespace WebApi.Controllers
         public IActionResult GetOne(int id)
         {
             Product product = _appDbContext.Products
+                .Include(p => p.Category)
                 .Where(p => !p.IsDelete)
                 .FirstOrDefault(x => x.Id == id);
             if (product == null) return StatusCode(StatusCodes.Status404NotFound);
@@ -60,7 +71,13 @@ namespace WebApi.Controllers
                 SalePrice = product.SalePrice,
                 CostPrice = product.CostPrice,
                 UpdatedDate = product.UpdatedDate,
-                CreatedDate = product.CreatedDate
+                CreatedDate = product.CreatedDate,
+                Category = new()
+                {
+                    Id = product.CategoryId,
+                    Name = product.Category.Name
+                }
+
             };
 
 
@@ -71,9 +88,14 @@ namespace WebApi.Controllers
         [HttpPost]
         public IActionResult AddProduct(ProductCreateDto productCreateDto)
         {
+            var category = _appDbContext.Categories
+                .Where(c => !c.IsDelete)
+                .FirstOrDefault(c => c.Id == productCreateDto.CategoryId);
+            if (category == null) return NotFound();
             Product newProduct = new()
             {
                 Name = productCreateDto.Name,
+                CategoryId = category.Id,
                 SalePrice = productCreateDto.SalePrice,
                 isActive = productCreateDto.IsActive,
                 CostPrice = productCreateDto.CostPrice,
@@ -81,7 +103,7 @@ namespace WebApi.Controllers
             };
             _appDbContext.Products.Add(newProduct);
             _appDbContext.SaveChanges();
-            return StatusCode(StatusCodes.Status201Created, newProduct);
+            return StatusCode(StatusCodes.Status201Created);
         }
 
         [HttpDelete("{id}")]
