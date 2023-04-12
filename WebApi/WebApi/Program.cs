@@ -2,6 +2,7 @@ using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Data.DAL;
 using WebApi.Dtos.ProductDtos;
+using WebApi.Profiles;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -15,6 +16,11 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseSqlServer(config.GetConnectionString("DefaultConnection"));
+});
+
+builder.Services.AddAutoMapper(option=>
+{
+    option.AddProfile(new MapperProfile());
 });
 
 var app = builder.Build();

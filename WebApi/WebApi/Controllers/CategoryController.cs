@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using WebApi.Data.DAL;
 using WebApi.Dtos.CategoryDtos;
 using WebApi.Dtos.ProductDtos;
@@ -16,11 +18,13 @@ namespace WebApi.Controllers
     {
         private readonly AppDbContext _appDbContext;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IMapper _mapper;
 
-        public CategoryController(AppDbContext appDbContext, IWebHostEnvironment webHostEnvironment)
+        public CategoryController(AppDbContext appDbContext, IWebHostEnvironment webHostEnvironment, IMapper mapper)
         {
             _appDbContext = appDbContext;
             _webHostEnvironment = webHostEnvironment;
+            _mapper = mapper;
         }
 
 
@@ -59,19 +63,12 @@ namespace WebApi.Controllers
         public IActionResult GetOne(int id)
         {
             Category category = _appDbContext.Categories
+                .Include(c=>c.Products)
                 .Where(c => !c.IsDelete)
                 .FirstOrDefault(x => x.Id == id);
             if (category == null) return StatusCode(StatusCodes.Status404NotFound);
 
-            CategoryReturnDto categoryReturnDto = new()
-            {
-                Name = category.Name,
-                Desc = category.Desc,
-                ImageUrl = "https://localhost:7197/img/" + category.ImageUrl,
-                UpdatedDate = category.UpdatedDate,
-                CreatedDate = category.CreatedDate
-            };
-
+            CategoryReturnDto categoryReturnDto = _mapper.Map<CategoryReturnDto>(category);
             return Ok(categoryReturnDto);
         }
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Data.DAL;
@@ -12,10 +13,12 @@ namespace WebApi.Controllers
     public class ProductController : ControllerBase
     {
         private readonly AppDbContext _appDbContext;
+        private readonly IMapper _mapper;
 
-        public ProductController(AppDbContext appDbContext)
+        public ProductController(AppDbContext appDbContext, IMapper mapper)
         {
             _appDbContext = appDbContext;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -65,21 +68,7 @@ namespace WebApi.Controllers
                 .FirstOrDefault(x => x.Id == id);
             if (product == null) return StatusCode(StatusCodes.Status404NotFound);
 
-            ProductReturnDto productReturnDto = new()
-            {
-                Name = product.Name,
-                SalePrice = product.SalePrice,
-                CostPrice = product.CostPrice,
-                UpdatedDate = product.UpdatedDate,
-                CreatedDate = product.CreatedDate,
-                Category = new()
-                {
-                    Id = product.CategoryId,
-                    Name = product.Category.Name
-                }
-
-            };
-
+            ProductReturnDto productReturnDto = _mapper.Map<ProductReturnDto>(product);
 
             return Ok(productReturnDto);
         }
